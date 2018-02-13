@@ -2,7 +2,20 @@
 
 This module runs a command as a `null_resource` and makes the stdout, stderr and exit status available as outputs (with temporary files stored in the module).
 
-## Usage
+```
+module "files" {
+  source  = "matti/resource/shell"
+  version = "0.0.1"
+
+  command = "ls -l"
+}
+
+output "my_files" {
+  value = "${module.files.stdout}
+}
+```
+
+## Additional example with two resources
 
 See [test/main.tf](test/main.tf)
 
