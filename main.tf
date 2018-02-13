@@ -1,10 +1,16 @@
 resource "null_resource" "shell" {
   triggers {
-    command = "${var.command}"
+    command              = "${var.command}"
+    command_when_destroy = "${var.command_when_destroy}"
   }
 
   provisioner "local-exec" {
     command = "${var.command} 2>${path.module}/stderr.${self.id} >${path.module}/stdout.${self.id}; echo $? >${path.module}/exitstatus.${self.id}"
+  }
+
+  provisioner "local-exec" {
+    when    = "destroy"
+    command = "${var.command_when_destroy == "" ? ":" : var.command_when_destroy}"
   }
 
   provisioner "local-exec" {

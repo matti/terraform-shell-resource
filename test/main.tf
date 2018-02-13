@@ -15,7 +15,8 @@ output "stdout" {
 module "error" {
   source = ".."
 
-  command = "/bin/false"
+  command              = "/bin/false"
+  command_when_destroy = "echo destroyed!"
 }
 
 output "error" {
