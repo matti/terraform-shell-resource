@@ -38,16 +38,13 @@ resource "null_resource" "shell" {
 }
 
 data "local_file" "stdout" {
-  depends_on = ["null_resource.shell"]
-  filename   = "${path.module}/stdout.${null_resource.shell.id}"
+  filename = "${path.module}/stdout.${null_resource.shell.id}"
 }
 
 data "local_file" "stderr" {
-  depends_on = ["null_resource.shell"]
-  filename   = "${path.module}/stderr.${null_resource.shell.id}"
+  filename = "${path.module}/stderr.${null_resource.shell.id}"
 }
 
 data "local_file" "exitstatus" {
-  depends_on = ["null_resource.shell"]
-  filename   = "${path.module}/exitstatus.${null_resource.shell.id}"
+  filename = "${path.module}/exitstatus.${null_resource.shell.id}"
 }
