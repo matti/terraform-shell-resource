@@ -23,7 +23,7 @@ resource "null_resource" "shell" {
 
   provisioner "local-exec" {
     when    = "destroy"
-    command = "${local.command_when_destroy_chomped == "" ? ":" : local.command_chomped}"
+    command = "${local.command_when_destroy_chomped == "" ? ":" : local.command_when_destroy_chomped}"
   }
 
   provisioner "local-exec" {
