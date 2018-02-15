@@ -1,3 +1,7 @@
+output "id" {
+  value = "${null_resource.shell.id}"
+}
+
 output "stdout" {
   value = "${data.local_file.stdout.content}"
 }
