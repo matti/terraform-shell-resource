@@ -1,4 +1,12 @@
+resource "null_resource" "start" {
+  provisioner "local-exec" {
+    command = "echo depends_id=${var.depends_id}"
+  }
+}
+
 resource "null_resource" "shell" {
+  depends_on = ["null_resource.start"]
+
   triggers {
     command              = "${var.command}"
     command_when_destroy = "${var.command_when_destroy}"
