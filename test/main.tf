@@ -27,6 +27,24 @@ output "depends_on_stdout" {
   }
 }
 
+module "do_not_trigger" {
+  source = ".."
+
+  triggers = {
+    command              = false
+    command_when_destroy = false
+  }
+
+  command              = "echo changeme"
+  command_when_destroy = "echo changeme"
+}
+
+output "do_not_trigger" {
+  value = {
+    stdout = "${module.do_not_trigger.stdout}"
+  }
+}
+
 module "error" {
   source = ".."
 
