@@ -1,7 +1,7 @@
 module "stdout" {
   source = ".."
 
-  command = "echo hello stdout"
+  command = "ls -l"
 }
 
 output "stdout" {
@@ -15,8 +15,8 @@ output "stdout" {
 module "depends_on_stdout" {
   source = ".."
 
-  command              = "echo on create module.stdout.stdout, because of https://github.com/hashicorp/terraform/issues/17337"
-  command_when_destroy = "echo on destroy 👹 👹 👹 👹 👹 : ${module.stdout.stdout}"
+  command              = "echo on create: \"${module.stdout.stdout}\""
+  command_when_destroy = "echo on destroy: \"${module.stdout.stdout}\""
 }
 
 output "depends_on_stdout" {
