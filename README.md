@@ -42,3 +42,7 @@ $ terraform apply
 
   }
 ```
+
+## Related issues:
+
+ - https://github.com/hashicorp/terraform/issues/17337
