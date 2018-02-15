@@ -27,21 +27,29 @@ output "depends_on_stdout" {
   }
 }
 
-module "do_not_trigger" {
-  source = ".."
-
-  triggers = {
-    command              = false
-    command_when_destroy = false
-  }
-
-  command              = "echo changeme"
-  command_when_destroy = "echo changeme"
+locals {
+  depends_trigger_dependency_command = "echo changeme"
 }
 
-output "do_not_trigger" {
+module "depends_trigger_dependency" {
+  source = ".."
+
+  trigger = "${local.depends_trigger_dependency_command}"
+  command = "${local.depends_trigger_dependency_command}"
+}
+
+module "depends_trigger" {
+  source = ".."
+
+  depends_id = "${module.depends_trigger_dependency.id}"
+  trigger    = "${module.depends_trigger_dependency.id}"
+
+  command = "echo triggered $(date)"
+}
+
+output "depends_trigger" {
   value = {
-    stdout = "${module.do_not_trigger.stdout}"
+    stdout = "${module.depends_trigger.stdout}"
   }
 }
 

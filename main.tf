@@ -12,9 +12,8 @@ locals {
 resource "null_resource" "shell" {
   depends_on = ["null_resource.start"]
 
-  triggers {
-    command              = "${var.triggers["command"] == true ? local.command_chomped : ""}"
-    command_when_destroy = "${var.triggers["command_when_destroy"] == true ? local.command_when_destroy_chomped : ""}"
+  triggers = {
+    string = "${var.trigger}"
   }
 
   provisioner "local-exec" {
