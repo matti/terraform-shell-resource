@@ -18,7 +18,7 @@ resource "null_resource" "shell" {
   }
 
   provisioner "local-exec" {
-    command = "${local.command} 2>${path.module}/stderr.${self.id} >${path.module}/stdout.${self.id}; echo $? >${path.module}/exitstatus.${self.id}"
+    command = "${local.command_chomped} 2>${path.module}/stderr.${self.id} >${path.module}/stdout.${self.id}; echo $? >${path.module}/exitstatus.${self.id}"
   }
 
   provisioner "local-exec" {
