@@ -4,21 +4,26 @@ resource "null_resource" "start" {
   }
 }
 
+locals {
+  command_chomped              = "${chomp(var.command)}"
+  command_when_destroy_chomped = "${chomp(var.command_when_destroy)}"
+}
+
 resource "null_resource" "shell" {
   depends_on = ["null_resource.start"]
 
   triggers {
-    command              = "${var.command}"
-    command_when_destroy = "${var.command_when_destroy}"
+    command              = "${local.command_chomped}"
+    command_when_destroy = "${local.command_when_destroy_chomped}"
   }
 
   provisioner "local-exec" {
-    command = "${chomp(var.command)} 2>${path.module}/stderr.${self.id} >${path.module}/stdout.${self.id}; echo $? >${path.module}/exitstatus.${self.id}"
+    command = "${local.command} 2>${path.module}/stderr.${self.id} >${path.module}/stdout.${self.id}; echo $? >${path.module}/exitstatus.${self.id}"
   }
 
   provisioner "local-exec" {
     when    = "destroy"
-    command = "${var.command_when_destroy == "" ? ":" : chomp(var.command_when_destroy)}"
+    command = "${local.command_when_destroy_chomped == "" ? ":" : local.command_chomped}"
   }
 
   provisioner "local-exec" {
