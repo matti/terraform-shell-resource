@@ -1,6 +1,6 @@
 resource "null_resource" "start" {
-  provisioner "local-exec" {
-    command = "echo depends_id=${var.depends_id}"
+  triggers {
+    depends_id = "${var.depends_id}"
   }
 }
 
