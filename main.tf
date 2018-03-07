@@ -7,6 +7,7 @@ resource "null_resource" "start" {
 locals {
   command_chomped              = "${chomp(var.command)}"
   command_when_destroy_chomped = "${chomp(var.command_when_destroy)}"
+  output_path                  = "${var.output_path == "" ? path.module : var.output_path}"
 }
 
 resource "null_resource" "shell" {
@@ -17,7 +18,7 @@ resource "null_resource" "shell" {
   }
 
   provisioner "local-exec" {
-    command = "${local.command_chomped} 2>\"${path.module}/stderr.${self.id}\" >\"${path.module}/stdout.${self.id}\"; echo $? >\"${path.module}/exitstatus.${self.id}\""
+    command = "${local.command_chomped} 2>\"${local.output_path}/stderr.${self.id}\" >\"${local.output_path}/stdout.${self.id}\"; echo $? >\"${local.output_path}/exitstatus.${self.id}\""
   }
 
   provisioner "local-exec" {
@@ -27,28 +28,28 @@ resource "null_resource" "shell" {
 
   provisioner "local-exec" {
     when    = "destroy"
-    command = "rm \"${path.module}/stdout.${self.id}\""
+    command = "rm \"${local.output_path}/stdout.${self.id}\""
   }
 
   provisioner "local-exec" {
     when    = "destroy"
-    command = "rm \"${path.module}/stderr.${self.id}\""
+    command = "rm \"${local.output_path}/stderr.${self.id}\""
   }
 
   provisioner "local-exec" {
     when    = "destroy"
-    command = "rm \"${path.module}/exitstatus.${self.id}\""
+    command = "rm \"${local.output_path}/exitstatus.${self.id}\""
   }
 }
 
 data "local_file" "stdout" {
-  filename = "${path.module}/stdout.${null_resource.shell.id}"
+  filename = "${local.output_path}/stdout.${null_resource.shell.id}"
 }
 
 data "local_file" "stderr" {
-  filename = "${path.module}/stderr.${null_resource.shell.id}"
+  filename = "${local.output_path}/stderr.${null_resource.shell.id}"
 }
 
 data "local_file" "exitstatus" {
-  filename = "${path.module}/exitstatus.${null_resource.shell.id}"
+  filename = "${local.output_path}/exitstatus.${null_resource.shell.id}"
 }

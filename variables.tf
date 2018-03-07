@@ -13,3 +13,7 @@ variable "command_when_destroy" {
 variable "trigger" {
   default = ""
 }
+
+variable "output_path" {
+  default = ""
+}

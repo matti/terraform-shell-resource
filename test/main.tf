@@ -1,3 +1,20 @@
+module "stdout_output_path" {
+  source = ".."
+
+  command = "ls -l"
+
+  #remember that path.module refers to THIS file, not the module
+  output_path = "${path.module}/outputs"
+}
+
+output "stdout_output_path" {
+  value = {
+    stdout     = "${module.stdout_output_path.stdout}"
+    stderr     = "${module.stdout_output_path.stderr}"
+    exitstatus = "${module.stdout_output_path.exitstatus}"
+  }
+}
+
 module "stdout" {
   source = ".."
 
