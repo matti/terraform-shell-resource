@@ -7,7 +7,6 @@ resource "null_resource" "start" {
 locals {
   command_chomped              = "${chomp(var.command)}"
   command_when_destroy_chomped = "${chomp(var.command_when_destroy)}"
-  output_path                  = "${var.output_path == "" ? path.module : var.output_path}"
 }
 
 resource "null_resource" "shell" {
@@ -18,7 +17,7 @@ resource "null_resource" "shell" {
   }
 
   provisioner "local-exec" {
-    command = "${local.command_chomped} 2>\"${local.output_path}/stderr.${self.id}\" >\"${local.output_path}/stdout.${self.id}\"; echo $? >\"${local.output_path}/exitstatus.${self.id}\""
+    command = "${local.command_chomped} 2>\"${path.module}/stderr.${self.id}\" >\"${path.module}/stdout.${self.id}\"; echo $? >\"${path.module}/exitstatus.${self.id}\""
   }
 
   provisioner "local-exec" {
@@ -27,29 +26,56 @@ resource "null_resource" "shell" {
   }
 
   provisioner "local-exec" {
-    when    = "destroy"
-    command = "rm \"${local.output_path}/stdout.${self.id}\""
+    when       = "destroy"
+    command    = "rm \"${path.module}/stdout.${self.id}\""
+    on_failure = "continue"
   }
 
   provisioner "local-exec" {
-    when    = "destroy"
-    command = "rm \"${local.output_path}/stderr.${self.id}\""
+    when       = "destroy"
+    command    = "rm \"${path.module}/stderr.${self.id}\""
+    on_failure = "continue"
   }
 
   provisioner "local-exec" {
-    when    = "destroy"
-    command = "rm \"${local.output_path}/exitstatus.${self.id}\""
+    when       = "destroy"
+    command    = "rm \"${path.module}/exitstatus.${self.id}\""
+    on_failure = "continue"
   }
 }
 
-data "local_file" "stdout" {
-  filename = "${local.output_path}/stdout.${null_resource.shell.id}"
+data "external" "read" {
+  program = ["ruby", "${path.module}/read.rb"]
+
+  query = {
+    stdout     = "${path.module}/stdout.${null_resource.shell.id}"
+    stderr     = "${path.module}/stderr.${null_resource.shell.id}"
+    exitstatus = "${path.module}/exitstatus.${null_resource.shell.id}"
+  }
 }
 
-data "local_file" "stderr" {
-  filename = "${local.output_path}/stderr.${null_resource.shell.id}"
+resource "null_resource" "contents" {
+  triggers = {
+    stdout     = "${data.external.read.result["stdout"]}"
+    stderr     = "${data.external.read.result["stderr"]}"
+    exitstatus = "${data.external.read.result["exitstatus"]}"
+  }
+
+  lifecycle {
+    ignore_changes = [
+      "triggers",
+    ]
+  }
 }
 
-data "local_file" "exitstatus" {
-  filename = "${local.output_path}/exitstatus.${null_resource.shell.id}"
+output "stdout" {
+  value = "${chomp(null_resource.contents.triggers["stdout"])}"
+}
+
+output "stderr" {
+  value = "${chomp(null_resource.contents.triggers["stderr"])}"
+}
+
+output "exitstatus" {
+  value = "${chomp(null_resource.contents.triggers["exitstatus"])}"
 }
