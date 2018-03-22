@@ -48,3 +48,4 @@ $ terraform apply
 ## Related issues:
 
  - https://github.com/hashicorp/terraform/issues/17337
+ - https://github.com/hashicorp/terraform/issues/6830
