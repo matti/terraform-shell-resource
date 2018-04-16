@@ -2,7 +2,7 @@
 
 This module runs a command as a `null_resource` and makes the stdout, stderr and exit status available as outputs (with temporary files stored in the module). See an external data source version with more features at https://github.com/matti/terraform-shell-outputs (that runs on every apply, this one only runs once when the resource is created).
 
-Currently requires ruby - it would be great if somebody would write [read.rb](read.rb) in shell script without any dependencies (like jq) .
+Does not require external dependencies.
 
 ```
 module "files" {
@@ -49,3 +49,6 @@ $ terraform apply
 
  - https://github.com/hashicorp/terraform/issues/17337
  - https://github.com/hashicorp/terraform/issues/6830
+ - https://github.com/hashicorp/terraform/issues/17034
+ - https://github.com/hashicorp/terraform/issues/10878
+ - https://github.com/hashicorp/terraform/issues/8136
