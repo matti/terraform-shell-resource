@@ -7,8 +7,6 @@ Does not require external dependencies.
 ```
 module "files" {
   source  = "matti/resource/shell"
-  version = "0.0.1"
-
   command = "ls -l"
 }
 
