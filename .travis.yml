@@ -1,6 +1,7 @@
 env:
   - tf_version=0.8.8
   - tf_version=0.9.11
+  - tf_version=0.11.7
 
 sudo: required
 
