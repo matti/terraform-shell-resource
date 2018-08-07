@@ -11,9 +11,11 @@ before_install:
 
 script:
   - terraform init
+  - terraform validate
   - terraform plan
   - terraform apply
   - cd test
   - terraform init
+  - terraform validate
   - terraform plan
   - terraform apply
