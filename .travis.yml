@@ -1,0 +1,21 @@
+env:
+  - tf_version=0.11.7
+
+sudo: required
+
+language: bash
+
+before_install:
+  - wget https://releases.hashicorp.com/terraform/${tf_version}/terraform_${tf_version}_linux_amd64.zip -O /tmp/terraform.zip
+  - sudo unzip -d /usr/local/bin/ /tmp/terraform.zip
+
+script:
+  - terraform init
+  - terraform validate
+  - terraform plan
+  - terraform apply -auto-approve
+  - cd test
+  - terraform init
+  - terraform validate
+  - terraform plan
+  - terraform apply -auto-approve
