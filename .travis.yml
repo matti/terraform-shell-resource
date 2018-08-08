@@ -13,9 +13,9 @@ script:
   - terraform init
   - terraform validate
   - terraform plan
-  - yes yes | terraform apply
+  - terraform apply -auto-approve
   - cd test
   - terraform init
   - terraform validate
   - terraform plan
-  - yes yes | terraform apply
+  - terraform apply -auto-approve
