@@ -13,7 +13,7 @@ module "files" {
 }
 
 output "my_files" {
-  value = "${module.files.stdout}
+  value = "${module.files.stdout}"
 }
 ```
 
