@@ -1,5 +1,5 @@
 env:
-  - tf_version=0.11.7
+  - tf_version=0.11.11
 
 sudo: required
 
@@ -8,14 +8,9 @@ language: bash
 before_install:
   - wget https://releases.hashicorp.com/terraform/${tf_version}/terraform_${tf_version}_linux_amd64.zip -O /tmp/terraform.zip
   - sudo unzip -d /usr/local/bin/ /tmp/terraform.zip
+  - git clone https://github.com/bats-core/bats-core.git
+  - cd bats-core
+  - sudo ./install.sh /usr/local
 
 script:
-  - terraform init
-  - terraform validate
-  - terraform plan
-  - terraform apply -auto-approve
-  - cd test
-  - terraform init
-  - terraform validate
-  - terraform plan
-  - terraform apply -auto-approve
+  - bats -r
