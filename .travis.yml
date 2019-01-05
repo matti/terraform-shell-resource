@@ -13,4 +13,4 @@ before_install:
   - sudo ./install.sh /usr/local
 
 script:
-  - bats -r
+  - bats -r tests
