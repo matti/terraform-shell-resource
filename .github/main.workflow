@@ -1,9 +1,14 @@
 workflow "test" {
   on = "push"
-  resolves = ["GitHub Action for Docker"]
+  resolves = ["terraform fmt"]
 }
 
-action "GitHub Action for Docker" {
-  uses = "actions/docker/cli@76ff57a"
-  args = "build"
+action "terraform fmt" {
+  uses = "hashicorp/terraform-github-actions/fmt@v0.1.1"
+
+  env = {
+    TF_ACTION_WORKING_DIR = "."
+  }
+
+  secrets = ["GITHUB_TOKEN"]
 }
