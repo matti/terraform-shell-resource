@@ -1,6 +1,7 @@
 load ../helper
 
 @test "changes on each destroy/apply" {
+  runner "terraform apply -auto-approve"
   tf_output ".output.value.stdout"
   local first=$output
 
@@ -13,6 +14,8 @@ load ../helper
 }
 
 @test "does not change with apply+apply" {
+  runner "terraform apply -auto-approve"
+
   tf_output ".output.value.stdout"
   local first=$output
 
