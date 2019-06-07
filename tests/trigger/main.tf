@@ -7,7 +7,7 @@ module "test" {
 
   trigger = var.trigger
 
-  command = "echo $RANDOM"
+  command = "date"
 }
 
 output "output" {
@@ -17,4 +17,3 @@ output "output" {
     exitstatus = module.test.exitstatus
   }
 }
-
