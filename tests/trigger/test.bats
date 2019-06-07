@@ -10,7 +10,7 @@ load ../helper
 
   tf_output ".output.value.stdout"
   local second=$output
-  assert_not $first $second
+  assert_not "$first" "$second"
 }
 
 @test "does not change with apply+apply" {
@@ -23,7 +23,7 @@ load ../helper
 
   tf_output ".output.value.stdout"
   local second=$output
-  assert $first $second
+  assert "$first" "$second"
 }
 
 @test "changes when trigger changes apply+apply" {
