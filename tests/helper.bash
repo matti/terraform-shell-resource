@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
 output() {
@@ -76,7 +78,6 @@ setup() {
   cd $BATS_TEST_DIRNAME
   cleanup
   output "running: $BATS_TEST_DIRNAME $BATS_TEST_NAME"
-
 
   terraform init >/dev/null
   terraform apply -auto-approve >/dev/null

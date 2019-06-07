@@ -14,3 +14,4 @@ variable "command_when_destroy" {
 variable "trigger" {
   default = ""
 }
+

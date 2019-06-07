@@ -4,7 +4,7 @@
 
 This module runs a command as a `null_resource` and makes the stdout, stderr and exit status available as outputs (with temporary files stored in the module). See an external data source version with more features at https://github.com/matti/terraform-shell-outputs (that runs on every apply, this one only runs once when the resource is created).
 
-*warning* there is a support for `trigger` to re-run the module, but while it runs the command it does not update the outputs! There is nothing we can do before Terraform 0.12.
+*warning* there is a support for `trigger` to re-run the module, but while it runs the command it does not update the outputs! There is nothing we can do before related issues (see below) are fixed.
 
 ```
 module "files" {

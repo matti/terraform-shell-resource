@@ -5,15 +5,16 @@ variable "trigger" {
 module "test" {
   source = "../.."
 
-  trigger = "${var.trigger}"
+  trigger = var.trigger
 
   command = "echo $RANDOM"
 }
 
 output "output" {
   value = {
-    stdout     = "${module.test.stdout}"
-    stderr     = "${module.test.stderr}"
-    exitstatus = "${module.test.exitstatus}"
+    stdout     = module.test.stdout
+    stderr     = module.test.stderr
+    exitstatus = module.test.exitstatus
   }
 }
+

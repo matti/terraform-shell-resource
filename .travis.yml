@@ -13,6 +13,8 @@ before_install:
   - git clone https://github.com/bats-core/bats-core.git
   - cd bats-core
   - sudo ./install.sh /usr/local
+  - wget http://stedolan.github.io/jq/download/linux64/jq
+  - sudo mv jq /usr/local/bin
   - cd $TRAVIS_BUILD_DIR
 script:
   - bats -r tests

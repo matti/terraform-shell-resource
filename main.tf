@@ -1,5 +1,5 @@
 provider "null" {
-  version = "~> 1.0"
+  version = "~> 2.1"
 }
 
 provider "external" {
@@ -7,19 +7,19 @@ provider "external" {
 }
 
 resource "null_resource" "start" {
-  triggers {
-    depends_id = "${var.depends_id}"
+  triggers = {
+    depends_id = var.depends_id
   }
 }
 
 locals {
-  command_chomped              = "${chomp(var.command)}"
-  command_when_destroy_chomped = "${chomp(var.command_when_destroy)}"
+  command_chomped              = chomp(var.command)
+  command_when_destroy_chomped = chomp(var.command_when_destroy)
 }
 
 resource "null_resource" "shell" {
   triggers = {
-    string = "${var.trigger}"
+    string = var.trigger
   }
 
   provisioner "local-exec" {
@@ -27,57 +27,55 @@ resource "null_resource" "shell" {
   }
 
   provisioner "local-exec" {
-    when    = "destroy"
-    command = "${local.command_when_destroy_chomped == "" ? ":" : local.command_when_destroy_chomped}"
+    when    = destroy
+    command = local.command_when_destroy_chomped == "" ? ":" : local.command_when_destroy_chomped
   }
 
   provisioner "local-exec" {
-    when       = "destroy"
+    when       = destroy
     command    = "rm \"${path.module}/stdout.${null_resource.start.id}\""
-    on_failure = "continue"
+    on_failure = continue
   }
 
   provisioner "local-exec" {
-    when       = "destroy"
+    when       = destroy
     command    = "rm \"${path.module}/stderr.${null_resource.start.id}\""
-    on_failure = "continue"
+    on_failure = continue
   }
 
   provisioner "local-exec" {
-    when       = "destroy"
+    when       = destroy
     command    = "rm \"${path.module}/exitstatus.${null_resource.start.id}\""
-    on_failure = "continue"
+    on_failure = continue
   }
 }
 
 data "external" "stdout" {
-  depends_on = ["null_resource.shell"]
+  depends_on = [null_resource.shell]
   program    = ["sh", "${path.module}/read.sh", "${path.module}/stdout.${null_resource.start.id}"]
 }
 
 data "external" "stderr" {
-  depends_on = ["null_resource.shell"]
+  depends_on = [null_resource.shell]
   program    = ["sh", "${path.module}/read.sh", "${path.module}/stderr.${null_resource.start.id}"]
 }
 
 data "external" "exitstatus" {
-  depends_on = ["null_resource.shell"]
+  depends_on = [null_resource.shell]
   program    = ["sh", "${path.module}/read.sh", "${path.module}/exitstatus.${null_resource.start.id}"]
 }
 
 resource "null_resource" "contents" {
-  depends_on = ["null_resource.shell"]
+  depends_on = [null_resource.shell]
 
   triggers = {
-    stdout     = "${data.external.stdout.result["content"]}"
-    stderr     = "${data.external.stderr.result["content"]}"
-    exitstatus = "${data.external.exitstatus.result["content"]}"
-    string     = "${var.trigger}"
+    stdout     = data.external.stdout.result["content"]
+    stderr     = data.external.stderr.result["content"]
+    exitstatus = data.external.exitstatus.result["content"]
+    string     = var.trigger
   }
 
   lifecycle {
-    ignore_changes = [
-      "triggers",
-    ]
+    ignore_changes = [triggers]
   }
 }

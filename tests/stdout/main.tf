@@ -6,8 +6,9 @@ module "stdout" {
 
 output "output" {
   value = {
-    stdout     = "${module.stdout.stdout}"
-    stderr     = "${module.stdout.stderr}"
-    exitstatus = "${module.stdout.exitstatus}"
+    stdout     = module.stdout.stdout
+    stderr     = module.stdout.stderr
+    exitstatus = module.stdout.exitstatus
   }
 }
+
