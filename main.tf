@@ -23,38 +23,40 @@ resource "null_resource" "shell" {
   }
 
   provisioner "local-exec" {
-    command     = "${local.command_chomped} 2>\"${path.module}/stderr.${null_resource.start.id}\" >\"${path.module}/stdout.${null_resource.start.id}\"; echo $? >\"${path.module}/exitstatus.${null_resource.start.id}\""
+    command     = "${local.command_chomped} 2>\"${abspath(path.module)}/stderr.${null_resource.start.id}\" >\"${abspath(path.module)}/stdout.${null_resource.start.id}\"; echo $? >\"${abspath(path.module)}/exitstatus.${null_resource.start.id}\""
     environment = var.environment_variables
+    working_dir = var.working_dir
   }
 
   provisioner "local-exec" {
     when        = destroy
     command     = local.command_when_destroy_chomped == "" ? ":" : local.command_when_destroy_chomped
     environment = var.environment_variables
+    working_dir = var.working_dir
   }
 
   provisioner "local-exec" {
     when       = destroy
-    command    = "rm \"${path.module}/stdout.${null_resource.start.id}\""
+    command    = "rm \"${abspath(path.module)}/stdout.${null_resource.start.id}\""
     on_failure = continue
   }
 
   provisioner "local-exec" {
     when       = destroy
-    command    = "rm \"${path.module}/stderr.${null_resource.start.id}\""
+    command    = "rm \"${abspath(path.module)}/stderr.${null_resource.start.id}\""
     on_failure = continue
   }
 
   provisioner "local-exec" {
     when       = destroy
-    command    = "rm \"${path.module}/exitstatus.${null_resource.start.id}\""
+    command    = "rm \"${abspath(path.module)}/exitstatus.${null_resource.start.id}\""
     on_failure = continue
   }
 }
 
 data "external" "stdout" {
   depends_on = [null_resource.shell]
-  program    = ["sh", "${path.module}/read.sh", "${path.module}/stdout.${null_resource.start.id}"]
+  program    = ["sh", "${abspath(path.module)}/read.sh", "${abspath(path.module)}/stdout.${null_resource.start.id}"]
 }
 
 data "external" "stderr" {

@@ -20,3 +20,9 @@ variable "environment_variables" {
   default     = {}
   description = "(Optional) Map of environment variables to pass to the command"
 }
+
+variable "working_dir" {
+  type        = string
+  default     = ""
+  description = "(Optional) the working directory where command will be executed"
+}
