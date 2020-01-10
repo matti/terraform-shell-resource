@@ -23,12 +23,14 @@ resource "null_resource" "shell" {
   }
 
   provisioner "local-exec" {
-    command = "${local.command_chomped} 2>\"${path.module}/stderr.${null_resource.start.id}\" >\"${path.module}/stdout.${null_resource.start.id}\"; echo $? >\"${path.module}/exitstatus.${null_resource.start.id}\""
+    command     = "${local.command_chomped} 2>\"${path.module}/stderr.${null_resource.start.id}\" >\"${path.module}/stdout.${null_resource.start.id}\"; echo $? >\"${path.module}/exitstatus.${null_resource.start.id}\""
+    environment = var.environment_variables
   }
 
   provisioner "local-exec" {
-    when    = destroy
-    command = local.command_when_destroy_chomped == "" ? ":" : local.command_when_destroy_chomped
+    when        = destroy
+    command     = local.command_when_destroy_chomped == "" ? ":" : local.command_when_destroy_chomped
+    environment = var.environment_variables
   }
 
   provisioner "local-exec" {
