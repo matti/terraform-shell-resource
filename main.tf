@@ -15,6 +15,7 @@ resource "null_resource" "start" {
 locals {
   command_chomped              = chomp(var.command)
   command_when_destroy_chomped = chomp(var.command_when_destroy)
+  module_path                  = abspath(path.module)
 }
 
 resource "null_resource" "shell" {
@@ -23,7 +24,7 @@ resource "null_resource" "shell" {
   }
 
   provisioner "local-exec" {
-    command     = "${local.command_chomped} 2>\"${abspath(path.module)}/stderr.${null_resource.start.id}\" >\"${abspath(path.module)}/stdout.${null_resource.start.id}\"; echo $? >\"${abspath(path.module)}/exitstatus.${null_resource.start.id}\""
+    command     = "${local.command_chomped} 2>\"${local.module_path}/stderr.${null_resource.start.id}\" >\"${local.module_path}/stdout.${null_resource.start.id}\"; echo $? >\"${local.module_path}/exitstatus.${null_resource.start.id}\""
     environment = var.environment_variables
     working_dir = var.working_dir
   }
@@ -37,36 +38,36 @@ resource "null_resource" "shell" {
 
   provisioner "local-exec" {
     when       = destroy
-    command    = "rm \"${abspath(path.module)}/stdout.${null_resource.start.id}\""
+    command    = "rm \"${local.module_path}/stdout.${null_resource.start.id}\""
     on_failure = continue
   }
 
   provisioner "local-exec" {
     when       = destroy
-    command    = "rm \"${abspath(path.module)}/stderr.${null_resource.start.id}\""
+    command    = "rm \"${local.module_path}/stderr.${null_resource.start.id}\""
     on_failure = continue
   }
 
   provisioner "local-exec" {
     when       = destroy
-    command    = "rm \"${abspath(path.module)}/exitstatus.${null_resource.start.id}\""
+    command    = "rm \"${local.module_path}/exitstatus.${null_resource.start.id}\""
     on_failure = continue
   }
 }
 
 data "external" "stdout" {
   depends_on = [null_resource.shell]
-  program    = ["sh", "${abspath(path.module)}/read.sh", "${abspath(path.module)}/stdout.${null_resource.start.id}"]
+  program    = ["sh", "${local.module_path}/read.sh", "${local.module_path}/stdout.${null_resource.start.id}"]
 }
 
 data "external" "stderr" {
   depends_on = [null_resource.shell]
-  program    = ["sh", "${path.module}/read.sh", "${path.module}/stderr.${null_resource.start.id}"]
+  program    = ["sh", "${local.module_path}/read.sh", "${local.module_path}/stderr.${null_resource.start.id}"]
 }
 
 data "external" "exitstatus" {
   depends_on = [null_resource.shell]
-  program    = ["sh", "${path.module}/read.sh", "${path.module}/exitstatus.${null_resource.start.id}"]
+  program    = ["sh", "${local.module_path}/read.sh", "${local.module_path}/exitstatus.${null_resource.start.id}"]
 }
 
 resource "null_resource" "contents" {
