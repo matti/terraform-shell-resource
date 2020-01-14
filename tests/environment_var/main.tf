@@ -2,7 +2,7 @@ module "stdout" {
   source = "../.."
 
   command = "echo $foo $bar"
-  environment_variables = {
+  environment = {
     foo = "bar"
     bar = "baz"
   }

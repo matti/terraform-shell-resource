@@ -25,14 +25,14 @@ resource "null_resource" "shell" {
 
   provisioner "local-exec" {
     command     = "${local.command_chomped} 2>\"${local.module_path}/stderr.${null_resource.start.id}\" >\"${local.module_path}/stdout.${null_resource.start.id}\"; echo $? >\"${local.module_path}/exitstatus.${null_resource.start.id}\""
-    environment = var.environment_variables
+    environment = var.environment
     working_dir = var.working_dir
   }
 
   provisioner "local-exec" {
     when        = destroy
     command     = local.command_when_destroy_chomped == "" ? ":" : local.command_when_destroy_chomped
-    environment = var.environment_variables
+    environment = var.environment
     working_dir = var.working_dir
   }
 
