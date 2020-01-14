@@ -4,7 +4,7 @@ module "stdout" {
   command = "echo $foo $bar"
   environment = {
     foo = "bar"
-    bar = "baz"
+    bar = "BAZ"
   }
 }
 
