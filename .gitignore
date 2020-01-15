@@ -1,5 +1,6 @@
 .terraform
 terraform.*
 /exitcode.*
+/exitstatus.*
 /stdout.*
 /stderr.*
