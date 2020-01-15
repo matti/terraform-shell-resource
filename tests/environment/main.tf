@@ -1,10 +1,10 @@
 module "stdout" {
   source = "../.."
 
-  command = "echo $foo $bar"
+  command = "echo $foo $BAR"
   environment = {
-    foo = "bar"
-    bar = "BAZ"
+    foo = "BAR"
+    BAR = "beer"
   }
 }
 
