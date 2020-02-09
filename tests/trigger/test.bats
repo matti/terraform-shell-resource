@@ -34,7 +34,5 @@ load ../helper
   tf_output ".output.value.stdout"
   local second=$output
 
-  output "SKIPPING ASSERT before terraform 0.12"
-  #TODO:
-  #assert_not $first $second
+  assert_not "$first" "$second"
 }

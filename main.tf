@@ -2,85 +2,87 @@ provider "null" {
   version = "~> 2.1"
 }
 
-provider "external" {
-  version = "~> 1.0"
-}
-
-resource "null_resource" "start" {
-  triggers = {
-    depends_id = var.depends_id
-  }
-}
-
 locals {
   command_chomped              = chomp(var.command)
   command_when_destroy_chomped = chomp(var.command_when_destroy)
   module_path                  = abspath(path.module)
 }
 
+resource "random_uuid" "uuid" {
+  depends_on = [var.depends]
+}
+
 resource "null_resource" "shell" {
   triggers = {
-    string = var.trigger
+    trigger                      = var.trigger
+    command_chomped              = local.command_chomped
+    command_when_destroy_chomped = local.command_when_destroy_chomped
+    environment_keys             = join("__TF_SHELL_RESOURCE_MAGIC_STRING", keys(var.environment))
+    environment_values           = join("__TF_SHELL_RESOURCE_MAGIC_STRING", values(var.environment))
+    module_path                  = local.module_path
+    working_dir                  = var.working_dir
+    random_uuid                  = random_uuid.uuid.result
   }
 
   provisioner "local-exec" {
-    command     = "${local.command_chomped} 2>\"${local.module_path}/stderr.${null_resource.start.id}\" >\"${local.module_path}/stdout.${null_resource.start.id}\"; echo $? >\"${local.module_path}/exitstatus.${null_resource.start.id}\""
-    environment = var.environment
-    working_dir = var.working_dir
+    command = local.command_chomped
+
+    environment = zipmap(
+      split("__TF_SHELL_RESOURCE_MAGIC_STRING", self.triggers.environment_keys),
+      split("__TF_SHELL_RESOURCE_MAGIC_STRING", self.triggers.environment_values)
+    )
+    working_dir = self.triggers.working_dir
+
+    interpreter = [
+      "${local.module_path}/run.sh",
+      local.module_path,
+      self.triggers.random_uuid
+    ]
   }
 
   provisioner "local-exec" {
-    when        = destroy
-    command     = local.command_when_destroy_chomped == "" ? ":" : local.command_when_destroy_chomped
-    environment = var.environment
-    working_dir = var.working_dir
+    when    = destroy
+    command = self.triggers.command_when_destroy_chomped == "" ? ":" : self.triggers.command_when_destroy_chomped
+    environment = zipmap(
+      split("__TF_SHELL_RESOURCE_MAGIC_STRING", self.triggers.environment_keys),
+      split("__TF_SHELL_RESOURCE_MAGIC_STRING", self.triggers.environment_values)
+    )
+    working_dir = self.triggers.working_dir
   }
 
   provisioner "local-exec" {
     when       = destroy
-    command    = "rm \"${local.module_path}/stdout.${null_resource.start.id}\""
+    command    = "rm '${self.triggers.module_path}/stdout.${self.triggers.random_uuid}'"
     on_failure = continue
   }
 
   provisioner "local-exec" {
     when       = destroy
-    command    = "rm \"${local.module_path}/stderr.${null_resource.start.id}\""
+    command    = "rm '${self.triggers.module_path}/stderr.${self.triggers.random_uuid}'"
     on_failure = continue
   }
 
   provisioner "local-exec" {
     when       = destroy
-    command    = "rm \"${local.module_path}/exitstatus.${null_resource.start.id}\""
+    command    = "rm '${self.triggers.module_path}/exitstatus.${self.triggers.random_uuid}'"
     on_failure = continue
   }
 }
 
-data "external" "stdout" {
-  depends_on = [null_resource.shell]
-  program    = ["sh", "${local.module_path}/read.sh", "${local.module_path}/stdout.${null_resource.start.id}"]
-}
-
-data "external" "stderr" {
-  depends_on = [null_resource.shell]
-  program    = ["sh", "${local.module_path}/read.sh", "${local.module_path}/stderr.${null_resource.start.id}"]
-}
-
-data "external" "exitstatus" {
-  depends_on = [null_resource.shell]
-  program    = ["sh", "${local.module_path}/read.sh", "${local.module_path}/exitstatus.${null_resource.start.id}"]
+locals {
+  stdout     = "${local.module_path}/stdout.${random_uuid.uuid.result}"
+  stderr     = "${local.module_path}/stderr.${random_uuid.uuid.result}"
+  exitstatus = "${local.module_path}/exitstatus.${random_uuid.uuid.result}"
 }
 
 resource "null_resource" "contents" {
-  depends_on = [null_resource.shell]
-
   triggers = {
-    stdout     = data.external.stdout.result["content"]
-    stderr     = data.external.stderr.result["content"]
-    exitstatus = data.external.exitstatus.result["content"]
-    string     = var.trigger
-  }
+    # when the shell resource changes (var.trigger etc), this causes evaluation to happen after
+    # using depends_on would be true for the subsequent apply causing terraform to explode
+    id = null_resource.shell.id
 
-  lifecycle {
-    ignore_changes = [triggers]
+    stdout     = fileexists(local.stdout) ? chomp(file(local.stdout)) : null
+    stderr     = fileexists(local.stderr) ? chomp(file(local.stderr)) : null
+    exitstatus = fileexists(local.exitstatus) ? chomp(file(local.exitstatus)) : null
   }
 }

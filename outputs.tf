@@ -1,19 +1,19 @@
 output "id" {
-  value = null_resource.shell.id
+  value = random_uuid.uuid.result
 }
 
 output "stdout" {
-  value = chomp(null_resource.contents.triggers["stdout"])
-  #value = "${data.external.stdout.result["content"]}"
+  value = null_resource.contents.triggers == null ? null : null_resource.contents.triggers.stdout
 }
 
 output "stderr" {
-  value = chomp(null_resource.contents.triggers["stderr"])
-  #value = "${data.external.stderr.result["content"]}"
+  value = null_resource.contents.triggers == null ? null : null_resource.contents.triggers.stderr
 }
 
 output "exitstatus" {
-  value = chomp(null_resource.contents.triggers["exitstatus"])
-  #value = "${data.external.exitstatus.result["content"]}"
+  value = null_resource.contents.triggers == null ? null : (
+    null_resource.contents.triggers.exitstatus == null ? null : (
+      tonumber(null_resource.contents.triggers.exitstatus)
+    )
+  )
 }
-
