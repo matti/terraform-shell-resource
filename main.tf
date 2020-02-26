@@ -5,7 +5,7 @@ provider "null" {
 locals {
   command_chomped              = chomp(var.command)
   command_when_destroy_chomped = chomp(var.command_when_destroy)
-  module_path                  = abspath(path.module)
+  module_path                  = path.module
 }
 
 resource "random_uuid" "uuid" {
