@@ -53,19 +53,19 @@ resource "null_resource" "shell" {
 
   provisioner "local-exec" {
     when       = destroy
-    command    = "rm '${self.triggers.absolute_path}/stdout.${self.triggers.random_uuid}'"
+    command    = "rm '${local.absolute_path}/stdout.${self.triggers.random_uuid}'"
     on_failure = continue
   }
 
   provisioner "local-exec" {
     when       = destroy
-    command    = "rm '${self.triggers.absolute_path}/stderr.${self.triggers.random_uuid}'"
+    command    = "rm '${local.absolute_path}/stderr.${self.triggers.random_uuid}'"
     on_failure = continue
   }
 
   provisioner "local-exec" {
     when       = destroy
-    command    = "rm '${self.triggers.absolute_path}/exitstatus.${self.triggers.random_uuid}'"
+    command    = "rm '${local.absolute_path}/exitstatus.${self.triggers.random_uuid}'"
     on_failure = continue
   }
 }
