@@ -19,7 +19,6 @@ resource "null_resource" "shell" {
     command_when_destroy_chomped = local.command_when_destroy_chomped
     environment_keys             = join("__TF_SHELL_RESOURCE_MAGIC_STRING", keys(var.environment))
     environment_values           = join("__TF_SHELL_RESOURCE_MAGIC_STRING", values(var.environment))
-    module_path                  = path.module
     working_dir                  = var.working_dir
     random_uuid                  = random_uuid.uuid.result
   }
