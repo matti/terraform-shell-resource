@@ -5,7 +5,6 @@ provider "null" {
 locals {
   command_chomped              = chomp(var.command)
   command_when_destroy_chomped = chomp(var.command_when_destroy)
-  module_path                  = path.module
   absolute_path                = abspath(path.module)
 }
 
@@ -20,7 +19,7 @@ resource "null_resource" "shell" {
     command_when_destroy_chomped = local.command_when_destroy_chomped
     environment_keys             = join("__TF_SHELL_RESOURCE_MAGIC_STRING", keys(var.environment))
     environment_values           = join("__TF_SHELL_RESOURCE_MAGIC_STRING", values(var.environment))
-    module_path                  = local.module_path
+    module_path                  = path.module
     working_dir                  = var.working_dir
     random_uuid                  = random_uuid.uuid.result
   }
@@ -52,21 +51,24 @@ resource "null_resource" "shell" {
   }
 
   provisioner "local-exec" {
-    when       = destroy
-    command    = "rm '${local.absolute_path}/stdout.${self.triggers.random_uuid}'"
-    on_failure = continue
+    when        = destroy
+    command     = "rm 'stdout.${self.triggers.random_uuid}'"
+    on_failure  = continue
+    working_dir = path.module
   }
 
   provisioner "local-exec" {
-    when       = destroy
-    command    = "rm '${local.absolute_path}/stderr.${self.triggers.random_uuid}'"
-    on_failure = continue
+    when        = destroy
+    command     = "rm 'stderr.${self.triggers.random_uuid}'"
+    on_failure  = continue
+    working_dir = path.module
   }
 
   provisioner "local-exec" {
-    when       = destroy
-    command    = "rm '${local.absolute_path}/exitstatus.${self.triggers.random_uuid}'"
-    on_failure = continue
+    when        = destroy
+    command     = "rm 'exitstatus.${self.triggers.random_uuid}'"
+    on_failure  = continue
+    working_dir = path.module
   }
 }
 
