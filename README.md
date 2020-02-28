@@ -2,6 +2,8 @@
 
 [![Build Status](https://travis-ci.org/matti/terraform-shell-resource.svg?branch=master)](https://travis-ci.org/matti/terraform-shell-resource)
 
+A workaround for https://github.com/hashicorp/terraform/issues/610 <-- please 👍, meanwhile:
+
 This module runs a command as a `null_resource` and makes the stdout, stderr and exit status available as outputs (stored in triggers map). See an external data source version with more features at https://github.com/matti/terraform-shell-outputs (that runs on every apply, this one only runs once when the resource is created and if command is changed).
 
 ## Usage
