@@ -78,7 +78,7 @@ greeting = hello world from /private/tmp where /tmp/first has content: I was her
 See [tests](tests) and [examples](examples)
 
 ## Related issues:
-
+ - https://github.com/hashicorp/terraform/issues/610
  - https://github.com/hashicorp/terraform/issues/17337
  - https://github.com/hashicorp/terraform/issues/6830
  - https://github.com/hashicorp/terraform/issues/17034
