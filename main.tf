@@ -5,7 +5,7 @@ provider "null" {
 locals {
   command_chomped              = chomp(var.command)
   command_when_destroy_chomped = chomp(var.command_when_destroy)
-  absolute_path                = abspath(path.module)
+  temporary_dir                = abspath(path.module)
 }
 
 resource "random_uuid" "uuid" {
@@ -33,8 +33,8 @@ resource "null_resource" "shell" {
     working_dir = self.triggers.working_dir
 
     interpreter = [
-      "${local.absolute_path}/run.sh",
-      local.absolute_path,
+      "${abspath(path.module)}/run.sh",
+      local.temporary_dir,
       self.triggers.random_uuid
     ]
   }
@@ -72,9 +72,9 @@ resource "null_resource" "shell" {
 }
 
 locals {
-  stdout     = "${local.absolute_path}/stdout.${random_uuid.uuid.result}"
-  stderr     = "${local.absolute_path}/stderr.${random_uuid.uuid.result}"
-  exitstatus = "${local.absolute_path}/exitstatus.${random_uuid.uuid.result}"
+  stdout     = "${local.temporary_dir}/stdout.${random_uuid.uuid.result}"
+  stderr     = "${local.temporary_dir}/stderr.${random_uuid.uuid.result}"
+  exitstatus = "${local.temporary_dir}/exitstatus.${random_uuid.uuid.result}"
 }
 
 resource "null_resource" "contents" {
