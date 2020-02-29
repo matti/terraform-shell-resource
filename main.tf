@@ -5,7 +5,7 @@ provider "null" {
 locals {
   command_chomped              = chomp(var.command)
   command_when_destroy_chomped = chomp(var.command_when_destroy)
-  module_path                  = abspath(path.module)
+  absolute_path                = abspath(path.module)
 }
 
 resource "random_uuid" "uuid" {
@@ -19,7 +19,6 @@ resource "null_resource" "shell" {
     command_when_destroy_chomped = local.command_when_destroy_chomped
     environment_keys             = join("__TF_SHELL_RESOURCE_MAGIC_STRING", keys(var.environment))
     environment_values           = join("__TF_SHELL_RESOURCE_MAGIC_STRING", values(var.environment))
-    module_path                  = local.module_path
     working_dir                  = var.working_dir
     random_uuid                  = random_uuid.uuid.result
   }
@@ -34,8 +33,8 @@ resource "null_resource" "shell" {
     working_dir = self.triggers.working_dir
 
     interpreter = [
-      "${local.module_path}/run.sh",
-      local.module_path,
+      "${local.absolute_path}/run.sh",
+      local.absolute_path,
       self.triggers.random_uuid
     ]
   }
@@ -51,28 +50,31 @@ resource "null_resource" "shell" {
   }
 
   provisioner "local-exec" {
-    when       = destroy
-    command    = "rm '${self.triggers.module_path}/stdout.${self.triggers.random_uuid}'"
-    on_failure = continue
+    when        = destroy
+    command     = "rm 'stdout.${self.triggers.random_uuid}'"
+    on_failure  = continue
+    working_dir = path.module
   }
 
   provisioner "local-exec" {
-    when       = destroy
-    command    = "rm '${self.triggers.module_path}/stderr.${self.triggers.random_uuid}'"
-    on_failure = continue
+    when        = destroy
+    command     = "rm 'stderr.${self.triggers.random_uuid}'"
+    on_failure  = continue
+    working_dir = path.module
   }
 
   provisioner "local-exec" {
-    when       = destroy
-    command    = "rm '${self.triggers.module_path}/exitstatus.${self.triggers.random_uuid}'"
-    on_failure = continue
+    when        = destroy
+    command     = "rm 'exitstatus.${self.triggers.random_uuid}'"
+    on_failure  = continue
+    working_dir = path.module
   }
 }
 
 locals {
-  stdout     = "${local.module_path}/stdout.${random_uuid.uuid.result}"
-  stderr     = "${local.module_path}/stderr.${random_uuid.uuid.result}"
-  exitstatus = "${local.module_path}/exitstatus.${random_uuid.uuid.result}"
+  stdout     = "${local.absolute_path}/stdout.${random_uuid.uuid.result}"
+  stderr     = "${local.absolute_path}/stderr.${random_uuid.uuid.result}"
+  exitstatus = "${local.absolute_path}/exitstatus.${random_uuid.uuid.result}"
 }
 
 resource "null_resource" "contents" {

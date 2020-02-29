@@ -4,3 +4,4 @@ terraform.*
 /exitstatus.*
 /stdout.*
 /stderr.*
+*.swp
