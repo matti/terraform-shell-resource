@@ -74,6 +74,12 @@ locals {
 }
 
 resource "null_resource" "contents" {
+  lifecycle {
+    ignore_changes = [
+      triggers
+    ]
+  }
+
   triggers = {
     # when the shell resource changes (var.trigger etc), this causes evaluation to happen after
     # using depends_on would be true for the subsequent apply causing terraform to explode
