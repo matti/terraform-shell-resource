@@ -3,17 +3,19 @@ output "id" {
 }
 
 output "stdout" {
-  value = null_resource.contents.triggers == null ? null : null_resource.contents.triggers.stdout
+  value = null_resource.contents.triggers == null ? null : lookup(null_resource.contents.triggers, "stdout", null)
 }
 
 output "stderr" {
-  value = null_resource.contents.triggers == null ? null : null_resource.contents.triggers.stderr
+  value = null_resource.contents.triggers == null ? null : lookup(null_resource.contents.triggers, "stderr", null)
 }
 
 output "exitstatus" {
   value = null_resource.contents.triggers == null ? null : (
-    null_resource.contents.triggers.exitstatus == null ? null : (
-      tonumber(null_resource.contents.triggers.exitstatus)
+    lookup(null_resource.contents.triggers, "exitstatus", null) == null ? null : (
+      tonumber(
+        lookup(null_resource.contents.triggers, "exitstatus", null)
+      )
     )
   )
 }
