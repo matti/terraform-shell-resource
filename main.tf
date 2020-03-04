@@ -73,10 +73,12 @@ locals {
   exitstatus = "${local.temporary_dir}/exitstatus.${random_uuid.uuid.result}"
 }
 
-resource "null_resource" "contents" {
+resource "null_resource" "contents_if_missing" {
   lifecycle {
     ignore_changes = [
-      triggers
+      triggers.stdout,
+      triggers.stderr,
+      triggers.exitstatus
     ]
   }
 
@@ -88,5 +90,20 @@ resource "null_resource" "contents" {
     stdout     = fileexists(local.stdout) ? chomp(file(local.stdout)) : null
     stderr     = fileexists(local.stderr) ? chomp(file(local.stderr)) : null
     exitstatus = fileexists(local.exitstatus) ? chomp(file(local.exitstatus)) : null
+  }
+}
+
+resource "null_resource" "contents" {
+  depends_on = [
+    null_resource.contents_if_missing
+  ]
+  triggers = {
+    # when the shell resource changes (var.trigger etc), this causes evaluation to happen after
+    # using depends_on would be true for the subsequent apply causing terraform to explode
+    id = null_resource.shell.id
+
+    stdout     = fileexists(local.stdout) ? chomp(file(local.stdout)) : null_resource.contents_if_missing.triggers.stdout
+    stderr     = fileexists(local.stderr) ? chomp(file(local.stderr)) : null_resource.contents_if_missing.triggers.stderr
+    exitstatus = fileexists(local.exitstatus) ? chomp(file(local.exitstatus)) : null_resource.contents_if_missing.triggers.exitstatus
   }
 }
