@@ -74,19 +74,17 @@ locals {
 }
 
 resource "null_resource" "contents_if_missing" {
+  depends_on = [
+    null_resource.shell
+  ]
+
   lifecycle {
     ignore_changes = [
-      triggers.stdout,
-      triggers.stderr,
-      triggers.exitstatus
+      triggers
     ]
   }
 
   triggers = {
-    # when the shell resource changes (var.trigger etc), this causes evaluation to happen after
-    # using depends_on would be true for the subsequent apply causing terraform to explode
-    id = null_resource.shell.id
-
     stdout     = fileexists(local.stdout) ? chomp(file(local.stdout)) : null
     stderr     = fileexists(local.stderr) ? chomp(file(local.stderr)) : null
     exitstatus = fileexists(local.exitstatus) ? chomp(file(local.exitstatus)) : null
@@ -102,8 +100,9 @@ resource "null_resource" "contents" {
     # using depends_on would be true for the subsequent apply causing terraform to explode
     id = null_resource.shell.id
 
-    stdout     = fileexists(local.stdout) ? chomp(file(local.stdout)) : null_resource.contents_if_missing.triggers.stdout
-    stderr     = fileexists(local.stderr) ? chomp(file(local.stderr)) : null_resource.contents_if_missing.triggers.stderr
-    exitstatus = fileexists(local.exitstatus) ? chomp(file(local.exitstatus)) : null_resource.contents_if_missing.triggers.exitstatus
+    # the lookup values are actually never returned, they just need to be there (!)
+    stdout     = fileexists(local.stdout) ? chomp(file(local.stdout)) : lookup(null_resource.contents_if_missing.triggers, "stdout", "")
+    stderr     = fileexists(local.stderr) ? chomp(file(local.stderr)) : lookup(null_resource.contents_if_missing.triggers, "stderr", "")
+    exitstatus = fileexists(local.exitstatus) ? chomp(file(local.exitstatus)) : lookup(null_resource.contents_if_missing.triggers, "exitstatus", -1)
   }
 }
