@@ -15,6 +15,8 @@ resource "null_resource" "shell" {
     command_when_destroy_chomped = local.command_when_destroy_chomped
     environment_keys             = join("__TF_SHELL_RESOURCE_MAGIC_STRING", keys(var.environment))
     environment_values           = join("__TF_SHELL_RESOURCE_MAGIC_STRING", values(var.environment))
+    sensitive_environment_keys   = join("__TF_SHELL_RESOURCE_MAGIC_STRING", keys(var.sensitive_environment))
+    sensitive_environment_values = sha256(join("__TF_SHELL_RESOURCE_MAGIC_STRING", values(var.sensitive_environment)))
     working_dir                  = var.working_dir
     random_uuid                  = random_uuid.uuid.result
   }
@@ -22,10 +24,10 @@ resource "null_resource" "shell" {
   provisioner "local-exec" {
     command = local.command_chomped
 
-    environment = zipmap(
+    environment = merge(zipmap(
       split("__TF_SHELL_RESOURCE_MAGIC_STRING", self.triggers.environment_keys),
       split("__TF_SHELL_RESOURCE_MAGIC_STRING", self.triggers.environment_values)
-    )
+    ), var.sensitive_environment)
     working_dir = self.triggers.working_dir
 
     interpreter = [
