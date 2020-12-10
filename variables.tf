@@ -21,6 +21,12 @@ variable "environment" {
   description = "(Optional) Map of environment variables to pass to the command"
 }
 
+variable "sensitive_environment" {
+  type        = map(string)
+  default     = {}
+  description = "(Optional) Map of (sentitive) environment variables to pass to the command"
+}
+
 variable "working_dir" {
   type        = string
   default     = ""
