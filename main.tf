@@ -103,8 +103,8 @@ resource "null_resource" "contents" {
     id = null_resource.shell.id
 
     # the lookup values are actually never returned, they just need to be there (!)
-    stdout     = fileexists(local.stdout) ? chomp(file(local.stdout)) : lookup(null_resource.contents_if_missing.triggers, "stdout", "")
-    stderr     = fileexists(local.stderr) ? chomp(file(local.stderr)) : lookup(null_resource.contents_if_missing.triggers, "stderr", "")
-    exitstatus = fileexists(local.exitstatus) ? chomp(file(local.exitstatus)) : lookup(null_resource.contents_if_missing.triggers, "exitstatus", -1)
+    stdout     = fileexists(local.stdout)     ? chomp(file(local.stdout))     :  ( null_resource.contents_if_missing.triggers == null ? "" : lookup(null_resource.contents_if_missing.triggers, "stdout", "")      )
+    stderr     = fileexists(local.stderr)     ? chomp(file(local.stderr))     :  ( null_resource.contents_if_missing.triggers == null ? "" : lookup(null_resource.contents_if_missing.triggers, "stderr", "")      )
+    exitstatus = fileexists(local.exitstatus) ? chomp(file(local.exitstatus)) :  ( null_resource.contents_if_missing.triggers == null ? -1 : lookup(null_resource.contents_if_missing.triggers, "exitstatus", -1)  ) 
   }
 }
