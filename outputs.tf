@@ -3,7 +3,8 @@ output "id" {
 }
 
 output "stdout" {
-  value = null_resource.contents.triggers == null ? null : lookup(null_resource.contents.triggers, "stdout", null)
+  value     = null_resource.contents.triggers == null ? null : lookup(null_resource.contents.triggers, "stdout", null)
+  sensitive = var.sensitive_output
 }
 
 output "stderr" {

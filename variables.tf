@@ -32,3 +32,9 @@ variable "working_dir" {
   default     = ""
   description = "(Optional) the working directory where command will be executed"
 }
+
+variable "sensitive_output" {
+  type        = bool
+  default     = false
+  description = "(Optional) should the output marked as sensitive value"
+}
