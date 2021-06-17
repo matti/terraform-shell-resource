@@ -1,7 +1,9 @@
 locals {
-  command_chomped              = chomp(var.command)
-  command_when_destroy_chomped = chomp(var.command_when_destroy)
+  is_windows                   = dirname("/") == "\\"
+  command_chomped              = chomp(local.is_windows ? var.command_windows : var.command)
+  command_when_destroy_chomped = chomp(local.is_windows ? var.command_when_destroy_windows : var.command_when_destroy)
   temporary_dir                = abspath(path.module)
+  interpreter                  = local.is_windows ? ["powershell.exe", "${abspath(path.module)}/run.ps1"] : ["${abspath(path.module)}/run.sh"]
 }
 
 resource "random_uuid" "uuid" {
@@ -30,11 +32,10 @@ resource "null_resource" "shell" {
     ), var.sensitive_environment)
     working_dir = self.triggers.working_dir
 
-    interpreter = [
-      "${abspath(path.module)}/run.sh",
+    interpreter = concat(local.interpreter, [
       local.temporary_dir,
       self.triggers.random_uuid
-    ]
+    ])
   }
 
   provisioner "local-exec" {
@@ -44,11 +45,13 @@ resource "null_resource" "shell" {
       split("__TF_SHELL_RESOURCE_MAGIC_STRING", self.triggers.environment_keys),
       split("__TF_SHELL_RESOURCE_MAGIC_STRING", self.triggers.environment_values)
     )
+    interpreter = dirname("/") == "\\" ? ["powershell.exe"] : []
     working_dir = self.triggers.working_dir
   }
 
   provisioner "local-exec" {
     when        = destroy
+    interpreter = dirname("/") == "\\" ? ["powershell.exe"] : []
     command     = "rm 'stdout.${self.triggers.random_uuid}'"
     on_failure  = continue
     working_dir = path.module
@@ -56,6 +59,7 @@ resource "null_resource" "shell" {
 
   provisioner "local-exec" {
     when        = destroy
+    interpreter = dirname("/") == "\\" ? ["powershell.exe"] : []
     command     = "rm 'stderr.${self.triggers.random_uuid}'"
     on_failure  = continue
     working_dir = path.module
@@ -63,6 +67,7 @@ resource "null_resource" "shell" {
 
   provisioner "local-exec" {
     when        = destroy
+    interpreter = dirname("/") == "\\" ? ["powershell.exe"] : []
     command     = "rm 'exitstatus.${self.triggers.random_uuid}'"
     on_failure  = continue
     working_dir = path.module
@@ -103,8 +108,8 @@ resource "null_resource" "contents" {
     id = null_resource.shell.id
 
     # the lookup values are actually never returned, they just need to be there (!)
-    stdout     = fileexists(local.stdout)     ? chomp(file(local.stdout))     :  ( null_resource.contents_if_missing.triggers == null ? "" : lookup(null_resource.contents_if_missing.triggers, "stdout", "")      )
-    stderr     = fileexists(local.stderr)     ? chomp(file(local.stderr))     :  ( null_resource.contents_if_missing.triggers == null ? "" : lookup(null_resource.contents_if_missing.triggers, "stderr", "")      )
-    exitstatus = fileexists(local.exitstatus) ? chomp(file(local.exitstatus)) :  ( null_resource.contents_if_missing.triggers == null ? -1 : lookup(null_resource.contents_if_missing.triggers, "exitstatus", -1)  ) 
+    stdout     = fileexists(local.stdout) ? chomp(file(local.stdout)) : (null_resource.contents_if_missing.triggers == null ? "" : lookup(null_resource.contents_if_missing.triggers, "stdout", ""))
+    stderr     = fileexists(local.stderr) ? chomp(file(local.stderr)) : (null_resource.contents_if_missing.triggers == null ? "" : lookup(null_resource.contents_if_missing.triggers, "stderr", ""))
+    exitstatus = fileexists(local.exitstatus) ? chomp(file(local.exitstatus)) : (null_resource.contents_if_missing.triggers == null ? -1 : lookup(null_resource.contents_if_missing.triggers, "exitstatus", -1))
   }
 }

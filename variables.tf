@@ -5,8 +5,14 @@ variable "depends" {
 variable "command" {
   default = ":"
 }
+variable "command_windows" {
+  default = ":"
+}
 
 variable "command_when_destroy" {
+  default = ":"
+}
+variable "command_when_destroy_windows" {
   default = ":"
 }
 
