@@ -10,7 +10,7 @@ $_cmd = $args[2..($args.length - 1)]
 
 # Equivalent of set +e
 $ErrorActionPreference = "Continue"
-$process = Start-Process powershell.exe -ArgumentList "$($_cmd -join " ")" -Wait -PassThru -NoNewWindow -RedirectStandardError "$_path/stderr.$_id" -RedirectStandardOutput "$_path/stdout.$_id"
+$process = Start-Process powershell.exe -ArgumentList "$_cmd" -Wait -PassThru -NoNewWindow -RedirectStandardError "$_path/stderr.$_id" -RedirectStandardOutput "$_path/stdout.$_id"
 $exitcode = $process.ExitCode
 [System.IO.File]::WriteAllText("$_path/exitstatus.$_id", "$exitcode", [System.Text.Encoding]::ASCII)
 $ErrorActionPreference = "Stop"
