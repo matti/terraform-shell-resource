@@ -73,6 +73,9 @@ Outputs:
 greeting = hello world from /private/tmp where /tmp/first has content: I was here first
 ```
 
+## Windows support
+This module also supports being run on Windows machines (assuming they support Powershell). If the `command_windows` and/or `command_when_destroy_windows` inputs are specified, they will be used instead of `command`/`command_when_destroy` when Terraform is run on Windows. If they are not specified, the `command`/`command_when_destroy` commands will be run regardless of the operating system.
+
 ## Additional examples
 
 See [tests](tests) and [examples](examples)
