@@ -5,25 +5,25 @@ variable "depends" {
 
 variable "command" {
   description = "The command to run on creation when the module is used on a Unix machine."
-  default = ":"
+  default = null
 }
 variable "command_windows" {
   description = "(Optional) The command to run on creation when the module is used on a Windows machine. If not specified, will default to be the same as the `command` variable."
-  default = ""
+  default = null
 }
 
 variable "command_when_destroy" {
   description = "The command to run on destruction when the module is used on a Unix machine."
-  default = ":"
+  default = null
 }
 variable "command_when_destroy_windows" {
   description = "(Optional) The command to run on destruction when the module is used on a Windows machine. If not specified, will default to be the same as the `command_when_destroy` variable."
-  default = ""
+  default = null
 }
 
 # warning! the outputs are not updated even if the trigger re-runs the command!
 variable "trigger" {
-  description = "When any of these values change, re-run the script (will first run the destroy command if this module already exists in the state)."
+  description = "A string value that, when changed, will cause the script to be re-run (will first run the destroy command if this module already exists in the state)."
   default = ""
 }
 

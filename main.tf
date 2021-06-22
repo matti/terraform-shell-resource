@@ -1,9 +1,13 @@
 locals {
   is_windows                   = dirname("/") == "\\"
-  command_windows = var.command_windows != "" ? var.command_windows : var.command
-  command_when_destroy_windows = var.command_when_destroy_windows != "" ? var.command_when_destroy_windows : var.command_when_destroy
-  command_chomped              = chomp(local.is_windows ? local.command_windows : var.command)
-  command_when_destroy_chomped = chomp(local.is_windows ? local.command_when_destroy_windows : var.command_when_destroy)
+  // The command that does nothing (differs depending on platform)
+  null_command = local.is_windows ? "% ':'" : ":"
+  command = var.command != null ? var.command : local.null_command
+  command_windows = var.command_windows != null ? var.command_windows : local.command
+  command_when_destroy = var.command_when_destroy != null ? var.command_when_destroy : local.null_command
+  command_when_destroy_windows = var.command_when_destroy_windows != null ? var.command_when_destroy_windows : local.command_when_destroy
+  command_chomped              = chomp(local.is_windows ? local.command_windows : local.command)
+  command_when_destroy_chomped = chomp(local.is_windows ? local.command_when_destroy_windows : local.command_when_destroy)
   temporary_dir                = abspath(path.module)
   interpreter                  = local.is_windows ? ["powershell.exe", "${abspath(path.module)}/run.ps1"] : ["${abspath(path.module)}/run.sh"]
 }
