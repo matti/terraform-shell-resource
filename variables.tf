@@ -30,23 +30,23 @@ variable "trigger" {
 variable "environment" {
   type        = map(string)
   default     = {}
-  description = "(Optional) Map of environment variables to pass to the command"
+  description = "(Optional) Map of environment variables to pass to the command. Will be merged with `sensitive_environment` and `triggerless_environment`."
 }
 
 variable "sensitive_environment" {
   type        = map(string)
   default     = {}
-  description = "(Optional) Map of (sentitive) environment variables to pass to the command"
-}
-
-variable "working_dir" {
-  type        = string
-  default     = ""
-  description = "(Optional) the working directory where command will be executed"
+  description = "(Optional) Map of (sentitive) environment variables to pass to the command. Will be merged with `environment` and `triggerless_environment`."
 }
 
 variable "triggerless_environment" {
   type        = map(string)
   default     = {}
-  description = "(Optional) Map of environment variables to pass to the command, which will NOT trigger a resource re-create if changed."
+  description = "(Optional) Map of environment variables to pass to the command, which will NOT trigger a resource re-create if changed. Will be merged with `environment` and `sensitive_environment`."
+}
+
+variable "working_dir" {
+  type        = string
+  default     = ""
+  description = "(Optional) the working directory where command will be executed."
 }

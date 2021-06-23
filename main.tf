@@ -35,7 +35,7 @@ resource "null_resource" "shell" {
     environment = merge(zipmap(
       split("__TF_SHELL_RESOURCE_MAGIC_STRING", self.triggers.environment_keys),
       split("__TF_SHELL_RESOURCE_MAGIC_STRING", self.triggers.environment_values)
-    ), var.triggerless_environment, var.sensitive_environment)
+    ), var.sensitive_environment, var.triggerless_environment)
     working_dir = self.triggers.working_dir
 
     interpreter = concat(local.interpreter, [
