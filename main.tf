@@ -1,10 +1,10 @@
 locals {
-  is_windows                   = dirname("/") == "\\"
+  is_windows = dirname("/") == "\\"
   // The command that does nothing (differs depending on platform)
-  null_command = local.is_windows ? "% ':'" : ":"
-  command = var.command != null ? var.command : local.null_command
-  command_windows = var.command_windows != null ? var.command_windows : local.command
-  command_when_destroy = var.command_when_destroy != null ? var.command_when_destroy : local.null_command
+  null_command                 = local.is_windows ? "% ':'" : ":"
+  command                      = var.command != null ? var.command : local.null_command
+  command_windows              = var.command_windows != null ? var.command_windows : local.command
+  command_when_destroy         = var.command_when_destroy != null ? var.command_when_destroy : local.null_command
   command_when_destroy_windows = var.command_when_destroy_windows != null ? var.command_when_destroy_windows : local.command_when_destroy
   command_chomped              = chomp(local.is_windows ? local.command_windows : local.command)
   command_when_destroy_chomped = chomp(local.is_windows ? local.command_when_destroy_windows : local.command_when_destroy)
@@ -35,7 +35,7 @@ resource "null_resource" "shell" {
     environment = merge(zipmap(
       split("__TF_SHELL_RESOURCE_MAGIC_STRING", self.triggers.environment_keys),
       split("__TF_SHELL_RESOURCE_MAGIC_STRING", self.triggers.environment_values)
-    ), var.sensitive_environment)
+    ), var.triggerless_environment, var.sensitive_environment)
     working_dir = self.triggers.working_dir
 
     interpreter = concat(local.interpreter, [
