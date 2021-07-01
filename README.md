@@ -4,7 +4,11 @@
 
 A workaround for https://github.com/hashicorp/terraform/issues/610 <-- please 👍, meanwhile:
 
-This module runs a command as a `null_resource` and makes the stdout, stderr and exit status available as outputs (stored in triggers map). See an external data source version with more features at https://github.com/matti/terraform-shell-outputs (that runs on every apply, this one only runs once when the resource is created and if command is changed).
+This module runs a command as a `null_resource` and makes the stdout, stderr and exit status available as outputs (stored in triggers map). It runs once when the resource is created and again if input variables are changed.
+
+External data source modules (run on each plan/apply):
+- An [module by the same author](https://github.com/matti/terraform-shell-outputs) that is mature and tested (requires Ruby).
+- An [module by a different author](https://registry.terraform.io/modules/Invicton-Labs/shell-data/external/latest) that is new and not as well tested, but is compatible with Windows and has no external requirements.
 
 ## Usage
 
