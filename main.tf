@@ -32,9 +32,10 @@ resource "null_resource" "shell" {
   provisioner "local-exec" {
     command = local.command_chomped
 
+    // Due to the join/split of environment keys/vars, we need to check for empty strings to prevent an env var of ""="", which Powershell does not like
     environment = merge(zipmap(
-      split("__TF_SHELL_RESOURCE_MAGIC_STRING", self.triggers.environment_keys),
-      split("__TF_SHELL_RESOURCE_MAGIC_STRING", self.triggers.environment_values)
+      self.triggers.environment_keys == "" ? [] : split("__TF_SHELL_RESOURCE_MAGIC_STRING", self.triggers.environment_keys),
+      self.triggers.environment_values == "" ? [] : split("__TF_SHELL_RESOURCE_MAGIC_STRING", self.triggers.environment_values)
     ), var.sensitive_environment, var.triggerless_environment)
     working_dir = self.triggers.working_dir
 
