@@ -8,7 +8,7 @@ This module runs a command as a `null_resource` and makes the stdout, stderr and
 
 External data source modules (run on each plan/apply):
 - An [module by the same author](https://github.com/matti/terraform-shell-outputs) that is mature and tested (requires Ruby).
-- An [module by a different author](https://registry.terraform.io/modules/Invicton-Labs/shell-data/external/latest) that is new and not as well tested, but is compatible with Windows and has no external requirements.
+- An [module by a different author](https://github.com/Invicton-Labs/terraform-external-shell-data) that is new and not as well tested, but is compatible with Windows and has no external requirements.
 
 ## Usage
 
