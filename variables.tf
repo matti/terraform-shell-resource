@@ -1,10 +1,10 @@
 variable "depends" {
-  description = "Equivalent to the `depends_on` input for a data/resource."
+  description = "(Optional) Equivalent to the `depends_on` input for a data/resource."
   default     = []
 }
 
 variable "command" {
-  description = "The command to run on creation when the module is used on a Unix machine."
+  description = "(Optional) The command to run on creation when the module is used on a Unix machine."
   default     = null
 }
 variable "command_windows" {
@@ -13,9 +13,10 @@ variable "command_windows" {
 }
 
 variable "command_when_destroy" {
-  description = "The command to run on destruction when the module is used on a Unix machine."
+  description = "(Optional) The command to run on destruction when the module is used on a Unix machine."
   default     = null
 }
+
 variable "command_when_destroy_windows" {
   description = "(Optional) The command to run on destruction when the module is used on a Windows machine. If not specified, will default to be the same as the `command_when_destroy` variable."
   default     = null
@@ -23,7 +24,7 @@ variable "command_when_destroy_windows" {
 
 # warning! the outputs are not updated even if the trigger re-runs the command!
 variable "trigger" {
-  description = "A string value that, when changed, will cause the script to be re-run (will first run the destroy command if this module already exists in the state)."
+  description = "(Optional) A string value that, when changed, will cause the script to be re-run (will first run the destroy command if this module already exists in the state)."
   default     = ""
 }
 
@@ -48,5 +49,11 @@ variable "triggerless_environment" {
 variable "working_dir" {
   type        = string
   default     = ""
-  description = "(Optional) the working directory where command will be executed."
+  description = "(Optional) The working directory where command will be executed."
+}
+
+variable "fail_on_error" {
+  type        = bool
+  default     = false
+  description = "(Optional) Whether a Terraform error should be thrown if the command throws an error. If true, nothing will be returned from this module and Terraform will fail the apply. If false, the error message will be returned in `stderr` and the error code will be returned in `exitcode`. Default: `false`."
 }

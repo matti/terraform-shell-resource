@@ -1,13 +1,9 @@
 locals {
-  is_windows = dirname("/") == "\\"
-  // The command that does nothing (differs depending on platform)
-  null_command                 = local.is_windows ? "% ':'" : ":"
-  command                      = var.command != null ? var.command : local.null_command
-  command_windows              = var.command_windows != null ? var.command_windows : local.command
-  command_when_destroy         = var.command_when_destroy != null ? var.command_when_destroy : local.null_command
-  command_when_destroy_windows = var.command_when_destroy_windows != null ? var.command_when_destroy_windows : local.command_when_destroy
-  command_chomped              = chomp(local.is_windows ? local.command_windows : local.command)
-  command_when_destroy_chomped = chomp(local.is_windows ? local.command_when_destroy_windows : local.command_when_destroy)
+  is_windows                   = dirname("/") == "\\"
+  command_unix                 = chomp(var.command != null ? var.command : ":")
+  command_windows              = chomp(var.command_windows != null ? var.command_windows : (var.command != null ? var.command : "% ':'"))
+  command_when_destroy_unix    = chomp(var.command_when_destroy != null ? var.command_when_destroy : ":")
+  command_when_destroy_windows = chomp(var.command_when_destroy_windows != null ? var.command_when_destroy_windows : (var.command_when_destroy != null ? var.command_when_destroy : "% ':'"))
   temporary_dir                = abspath(path.module)
   interpreter                  = local.is_windows ? ["powershell.exe", "${abspath(path.module)}/run.ps1"] : ["${abspath(path.module)}/run.sh"]
 }
@@ -19,18 +15,21 @@ resource "random_uuid" "uuid" {
 resource "null_resource" "shell" {
   triggers = {
     trigger                      = var.trigger
-    command_chomped              = local.command_chomped
-    command_when_destroy_chomped = local.command_when_destroy_chomped
+    command_unix                 = local.command_unix
+    command_windows              = local.command_windows
+    command_when_destroy_unix    = local.command_when_destroy_unix
+    command_when_destroy_windows = local.command_when_destroy_windows
     environment_keys             = join("__TF_SHELL_RESOURCE_MAGIC_STRING", keys(var.environment))
     environment_values           = join("__TF_SHELL_RESOURCE_MAGIC_STRING", values(var.environment))
     sensitive_environment_keys   = join("__TF_SHELL_RESOURCE_MAGIC_STRING", keys(var.sensitive_environment))
     sensitive_environment_values = sha256(join("__TF_SHELL_RESOURCE_MAGIC_STRING", values(var.sensitive_environment)))
     working_dir                  = var.working_dir
     random_uuid                  = random_uuid.uuid.result
+    fail_on_error                = var.fail_on_error
   }
 
   provisioner "local-exec" {
-    command = local.command_chomped
+    command = local.is_windows ? self.triggers.command_windows : self.triggers.command_unix
 
     // Due to the join/split of environment keys/vars, we need to check for empty strings to prevent an env var of ""="", which Powershell does not like
     environment = merge(zipmap(
@@ -41,13 +40,14 @@ resource "null_resource" "shell" {
 
     interpreter = concat(local.interpreter, [
       local.temporary_dir,
-      self.triggers.random_uuid
+      self.triggers.random_uuid,
+      self.triggers.fail_on_error ? "true" : "false"
     ])
   }
 
   provisioner "local-exec" {
     when    = destroy
-    command = self.triggers.command_when_destroy_chomped == "" ? ":" : self.triggers.command_when_destroy_chomped
+    command = dirname("/") == "\\" ? self.triggers.command_when_destroy_windows : self.triggers.command_when_destroy_unix
     environment = zipmap(
       split("__TF_SHELL_RESOURCE_MAGIC_STRING", self.triggers.environment_keys),
       split("__TF_SHELL_RESOURCE_MAGIC_STRING", self.triggers.environment_values)
