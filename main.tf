@@ -1,43 +1,39 @@
 locals {
   is_windows                   = dirname("/") == "\\"
-  command_unix                 = chomp(var.command != null ? var.command : ":")
-  command_windows              = chomp(var.command_windows != null ? var.command_windows : (var.command != null ? var.command : "% ':'"))
-  command_when_destroy_unix    = chomp(var.command_when_destroy != null ? var.command_when_destroy : ":")
-  command_when_destroy_windows = chomp(var.command_when_destroy_windows != null ? var.command_when_destroy_windows : (var.command_when_destroy != null ? var.command_when_destroy : "% ':'"))
+  command_unix                 = chomp(var.command_unix != null ? var.command_unix : (var.command_windows != null ?  var.command_windows : ":"))
+  command_windows              = chomp(var.command_windows != null ? var.command_windows : (var.command_unix != null ? var.command_unix : "% ':'"))
+  command_when_destroy_unix    = chomp(var.command_when_destroy_unix != null ? var.command_when_destroy_unix : (var.command_when_destroy_windows != null ?  var.command_when_destroy_windows : ":"))
+  command_when_destroy_windows = chomp(var.command_when_destroy_windows != null ? var.command_when_destroy_windows : (var.command_when_destroy_unix != null ? var.command_when_destroy_unix : "% ':'"))
   temporary_dir                = abspath(path.module)
+  triggers                      = try(tostring(var.triggers), jsonencode(var.triggers))
+  output_separator = "__TF_MAGIC_RANDOM_SEP"
   interpreter                  = local.is_windows ? ["powershell.exe", "${abspath(path.module)}/run.ps1"] : ["${abspath(path.module)}/run.sh"]
 }
 
-resource "random_uuid" "uuid" {
-  depends_on = [var.depends]
-}
+resource "random_uuid" "uuid" {}
 
 resource "null_resource" "shell" {
   triggers = {
-    trigger                      = var.trigger
+    triggers                     = local.triggers
     command_unix                 = local.command_unix
     command_windows              = local.command_windows
     command_when_destroy_unix    = local.command_when_destroy_unix
     command_when_destroy_windows = local.command_when_destroy_windows
-    environment_keys             = join("__TF_SHELL_RESOURCE_MAGIC_STRING", keys(var.environment))
-    environment_values           = join("__TF_SHELL_RESOURCE_MAGIC_STRING", values(var.environment))
-    sensitive_environment_keys   = join("__TF_SHELL_RESOURCE_MAGIC_STRING", keys(var.sensitive_environment))
-    sensitive_environment_values = sha256(join("__TF_SHELL_RESOURCE_MAGIC_STRING", values(var.sensitive_environment)))
+    environment                  = jsonencode(var.environment)
+    sensitive_environment        = sensitive(jsonencode(var.sensitive_environment))
     working_dir                  = var.working_dir
     random_uuid                  = random_uuid.uuid.result
     fail_on_error                = var.fail_on_error
+    stdout_file                  = "stdout.${random_uuid.uuid.result}"
+    stderr_file                  = "stderr.${random_uuid.uuid.result}"
+    exitstatus_file              = "exitstatus.${random_uuid.uuid.result}"
   }
 
   provisioner "local-exec" {
+    when        = create
     command = local.is_windows ? self.triggers.command_windows : self.triggers.command_unix
-
-    // Due to the join/split of environment keys/vars, we need to check for empty strings to prevent an env var of ""="", which Powershell does not like
-    environment = merge(zipmap(
-      self.triggers.environment_keys == "" ? [] : split("__TF_SHELL_RESOURCE_MAGIC_STRING", self.triggers.environment_keys),
-      self.triggers.environment_values == "" ? [] : split("__TF_SHELL_RESOURCE_MAGIC_STRING", self.triggers.environment_values)
-    ), var.sensitive_environment, var.triggerless_environment)
+    environment = merge(var.environment, var.sensitive_environment, var.triggerless_environment)
     working_dir = self.triggers.working_dir
-
     interpreter = concat(local.interpreter, [
       local.temporary_dir,
       self.triggers.random_uuid,
@@ -46,77 +42,83 @@ resource "null_resource" "shell" {
   }
 
   provisioner "local-exec" {
-    when    = destroy
-    command = dirname("/") == "\\" ? self.triggers.command_when_destroy_windows : self.triggers.command_when_destroy_unix
-    environment = zipmap(
-      split("__TF_SHELL_RESOURCE_MAGIC_STRING", self.triggers.environment_keys),
-      split("__TF_SHELL_RESOURCE_MAGIC_STRING", self.triggers.environment_values)
-    )
+    when        = destroy
+    command     = dirname("/") == "\\" ? self.triggers.command_when_destroy_windows : self.triggers.command_when_destroy_unix
+    environment = merge(jsondecode(self.triggers.environment), jsondecode(self.triggers.sensitive_environment))
     interpreter = dirname("/") == "\\" ? ["powershell.exe"] : []
     working_dir = self.triggers.working_dir
   }
+}
 
+locals {
+  stdout_file     = "${local.temporary_dir}/${null_resource.shell.triggers.stdout_file}"
+  stderr_file     = "${local.temporary_dir}/${null_resource.shell.triggers.stderr_file}"
+  exitstatus_file = "${local.temporary_dir}/${null_resource.shell.triggers.exitstatus_file}"
+}
+
+data "local_file" "stdout" {
+  depends_on = [null_resource.shell]
+  filename = fileexists(local.stdout_file) ? local.stdout_file : "${path.module}/empty"
+}
+data "local_file" "stderr" {
+  depends_on = [null_resource.shell]
+  filename = fileexists(local.stdout_file) ? local.stderr_file : "${path.module}/empty"
+}
+data "local_file" "exitstatus" {
+  depends_on = [null_resource.shell]
+  filename = fileexists(local.stdout_file) ? local.exitstatus_file : "${path.module}/empty"
+}
+
+// Use this as a resourced-based method to take an input that might change when the output files are missing,
+// but the triggers haven't changed, and maintain the same output.
+resource "random_id" "outputs" {
+  // Reload the data when any of the main triggers change
+  keepers = null_resource.shell.triggers
+  byte_length = 8
+  // Feed the output values in as prefix. Then we can extract them from the output of this resource,
+  // which will only change when the input triggers change
+  prefix = "${jsonencode({
+    stdout = chomp(data.local_file.stdout.content)
+    stderr = chomp(data.local_file.stderr.content)
+    exitstatus = chomp(data.local_file.exitstatus.content)
+  })}${local.output_separator}"
+  // Changes to the prefix shouldn't trigger a recreate, because when run again somewhere where the
+  // original output files don't exist (but the shell triggers haven't changed), we don't want to
+  // regenerate the output from non-existant files
+  lifecycle {
+    ignore_changes = [
+      prefix
+    ]
+  }
+
+  // Delete the files right away so they're not lingering on any local machine. The data has now
+  // been saved in the state so we no longer need them.
   provisioner "local-exec" {
-    when        = destroy
+    when        = create
     interpreter = dirname("/") == "\\" ? ["powershell.exe"] : []
-    command     = "rm 'stdout.${self.triggers.random_uuid}'"
+    command     = "rm '${self.keepers.stdout_file}'"
     on_failure  = continue
     working_dir = path.module
   }
 
   provisioner "local-exec" {
-    when        = destroy
+    when        = create
     interpreter = dirname("/") == "\\" ? ["powershell.exe"] : []
-    command     = "rm 'stderr.${self.triggers.random_uuid}'"
+    command     = "rm '${self.keepers.stderr_file}'"
     on_failure  = continue
     working_dir = path.module
   }
 
   provisioner "local-exec" {
-    when        = destroy
+    when        = create
     interpreter = dirname("/") == "\\" ? ["powershell.exe"] : []
-    command     = "rm 'exitstatus.${self.triggers.random_uuid}'"
+    command     = "rm '${self.keepers.exitstatus_file}'"
     on_failure  = continue
     working_dir = path.module
   }
 }
 
 locals {
-  stdout     = "${local.temporary_dir}/stdout.${random_uuid.uuid.result}"
-  stderr     = "${local.temporary_dir}/stderr.${random_uuid.uuid.result}"
-  exitstatus = "${local.temporary_dir}/exitstatus.${random_uuid.uuid.result}"
-}
-
-resource "null_resource" "contents_if_missing" {
-  depends_on = [
-    null_resource.shell
-  ]
-
-  lifecycle {
-    ignore_changes = [
-      triggers
-    ]
-  }
-
-  triggers = {
-    stdout     = fileexists(local.stdout) ? chomp(file(local.stdout)) : null
-    stderr     = fileexists(local.stderr) ? chomp(file(local.stderr)) : null
-    exitstatus = fileexists(local.exitstatus) ? chomp(file(local.exitstatus)) : null
-  }
-}
-
-resource "null_resource" "contents" {
-  depends_on = [
-    null_resource.contents_if_missing
-  ]
-  triggers = {
-    # when the shell resource changes (var.trigger etc), this causes evaluation to happen after
-    # using depends_on would be true for the subsequent apply causing terraform to explode
-    id = null_resource.shell.id
-
-    # the lookup values are actually never returned, they just need to be there (!)
-    stdout     = fileexists(local.stdout) ? chomp(file(local.stdout)) : (null_resource.contents_if_missing.triggers == null ? "" : lookup(null_resource.contents_if_missing.triggers, "stdout", ""))
-    stderr     = fileexists(local.stderr) ? chomp(file(local.stderr)) : (null_resource.contents_if_missing.triggers == null ? "" : lookup(null_resource.contents_if_missing.triggers, "stderr", ""))
-    exitstatus = fileexists(local.exitstatus) ? chomp(file(local.exitstatus)) : (null_resource.contents_if_missing.triggers == null ? -1 : lookup(null_resource.contents_if_missing.triggers, "exitstatus", -1))
-  }
+  // Remove the random ID off the random ID and extract only the prefix
+  outputs = jsondecode(split(local.output_separator, random_id.outputs.b64_std)[0])
 }

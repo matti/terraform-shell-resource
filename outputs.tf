@@ -3,19 +3,13 @@ output "id" {
 }
 
 output "stdout" {
-  value = null_resource.contents.triggers == null ? null : lookup(null_resource.contents.triggers, "stdout", null)
+  value = local.outputs.stdout
 }
 
 output "stderr" {
-  value = null_resource.contents.triggers == null ? null : lookup(null_resource.contents.triggers, "stderr", null)
+  value = local.outputs.stderr
 }
 
 output "exitstatus" {
-  value = null_resource.contents.triggers == null ? null : (
-    lookup(null_resource.contents.triggers, "exitstatus", null) == null ? null : (
-      tonumber(
-        lookup(null_resource.contents.triggers, "exitstatus", null)
-      )
-    )
-  )
+  value = tonumber(local.outputs.exitstatus)
 }
