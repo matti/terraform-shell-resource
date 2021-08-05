@@ -58,6 +58,9 @@ module "greeting" {
   trigger = timestamp()
 
   working_dir = "/tmp"
+
+  # mark outputs (stdout & stderr) as sensitive
+  # sensitive_outputs = true
 }
 
 output "greeting" {
@@ -74,6 +77,7 @@ greeting = hello world from /private/tmp where /tmp/first has content: I was her
 ```
 
 ## Windows support
+
 This module also supports being run on Windows machines (assuming they support Powershell). If the `command_windows` and/or `command_when_destroy_windows` inputs are specified, they will be used instead of `command`/`command_when_destroy` when Terraform is run on Windows. If they are not specified, the `command`/`command_when_destroy` commands will be run regardless of the operating system.
 
 ## Additional examples
@@ -81,11 +85,12 @@ This module also supports being run on Windows machines (assuming they support P
 See [tests](tests) and [examples](examples)
 
 ## Related issues:
- - https://github.com/hashicorp/terraform/issues/610
- - https://github.com/hashicorp/terraform/issues/17337
- - https://github.com/hashicorp/terraform/issues/6830
- - https://github.com/hashicorp/terraform/issues/17034
- - https://github.com/hashicorp/terraform/issues/10878
- - https://github.com/hashicorp/terraform/issues/8136
- - https://github.com/hashicorp/terraform/issues/18197
- - https://github.com/hashicorp/terraform/issues/17862
+
+- https://github.com/hashicorp/terraform/issues/610
+- https://github.com/hashicorp/terraform/issues/17337
+- https://github.com/hashicorp/terraform/issues/6830
+- https://github.com/hashicorp/terraform/issues/17034
+- https://github.com/hashicorp/terraform/issues/10878
+- https://github.com/hashicorp/terraform/issues/8136
+- https://github.com/hashicorp/terraform/issues/18197
+- https://github.com/hashicorp/terraform/issues/17862

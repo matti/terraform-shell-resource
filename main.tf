@@ -99,8 +99,8 @@ resource "null_resource" "contents_if_missing" {
   }
 
   triggers = {
-    stdout     = fileexists(local.stdout) ? chomp(file(local.stdout)) : null
-    stderr     = fileexists(local.stderr) ? chomp(file(local.stderr)) : null
+    stdout     = fileexists(local.stdout) ? (var.sensitive_outputs ? sensitive(chomp(file(local.stdout))) : chomp(file(local.stdout))) : null
+    stderr     = fileexists(local.stderr) ? (var.sensitive_outputs ? sensitive(chomp(file(local.stderr))) : chomp(file(local.stdout))) : null
     exitstatus = fileexists(local.exitstatus) ? chomp(file(local.exitstatus)) : null
   }
 }
@@ -115,8 +115,16 @@ resource "null_resource" "contents" {
     id = null_resource.shell.id
 
     # the lookup values are actually never returned, they just need to be there (!)
-    stdout     = fileexists(local.stdout) ? chomp(file(local.stdout)) : (null_resource.contents_if_missing.triggers == null ? "" : lookup(null_resource.contents_if_missing.triggers, "stdout", ""))
-    stderr     = fileexists(local.stderr) ? chomp(file(local.stderr)) : (null_resource.contents_if_missing.triggers == null ? "" : lookup(null_resource.contents_if_missing.triggers, "stderr", ""))
+    stdout = var.sensitive_outputs ? (
+      sensitive(fileexists(local.stdout) ? chomp(file(local.stdout)) : (null_resource.contents_if_missing.triggers == null ? "" : lookup(null_resource.contents_if_missing.triggers, "stdout", "")))
+      ) : (
+      fileexists(local.stdout) ? chomp(file(local.stdout)) : (null_resource.contents_if_missing.triggers == null ? "" : lookup(null_resource.contents_if_missing.triggers, "stdout", ""))
+    )
+    stderr = var.sensitive_outputs ? (
+      sensitive(fileexists(local.stderr) ? chomp(file(local.stderr)) : (null_resource.contents_if_missing.triggers == null ? "" : lookup(null_resource.contents_if_missing.triggers, "stderr", "")))
+      ) : (
+      fileexists(local.stderr) ? chomp(file(local.stderr)) : (null_resource.contents_if_missing.triggers == null ? "" : lookup(null_resource.contents_if_missing.triggers, "stderr", ""))
+    )
     exitstatus = fileexists(local.exitstatus) ? chomp(file(local.exitstatus)) : (null_resource.contents_if_missing.triggers == null ? -1 : lookup(null_resource.contents_if_missing.triggers, "exitstatus", -1))
   }
 }
