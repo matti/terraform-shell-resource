@@ -13,7 +13,7 @@ resource "random_uuid" "uuid" {
 }
 
 resource "null_resource" "shell" {
-  triggers = {
+  triggers = merge({
     trigger                      = var.trigger
     command_unix                 = local.command_unix
     command_windows              = local.command_windows
@@ -26,7 +26,7 @@ resource "null_resource" "shell" {
     working_dir                  = var.working_dir
     random_uuid                  = random_uuid.uuid.result
     fail_on_error                = var.fail_on_error
-  }
+  }, var.triggers)
 
   provisioner "local-exec" {
     command = local.is_windows ? self.triggers.command_windows : self.triggers.command_unix
