@@ -28,6 +28,12 @@ variable "trigger" {
   default     = ""
 }
 
+variable "triggers" {
+  type        = any
+  default     = {}
+  description = "(Optional) A map value that, when changed, will cause the script to be re-run (will first run the destroy command if this module already exists in the state)."
+}
+
 variable "environment" {
   type        = map(string)
   default     = {}
