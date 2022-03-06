@@ -1,3 +1,20 @@
+# no longer maintained
+
+- https://github.com/Invicton-Labs/terraform-external-shell-resource
+- https://registry.terraform.io/modules/Invicton-Labs/shell-resource/external/latest
+
+and
+
+- https://github.com/Invicton-Labs/terraform-external-shell-data
+- https://registry.terraform.io/modules/Invicton-Labs/shell-data/external/latest
+
+
+# - 
+# - 
+# - 
+# -
+
+
 # terraform-shell-resource
 
 [![Build Status](https://travis-ci.org/matti/terraform-shell-resource.svg?branch=master)](https://travis-ci.org/matti/terraform-shell-resource)
